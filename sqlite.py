@@ -79,15 +79,18 @@ class Connection(object):
       # cursor.close()
       pass
       
-  def get(self, query, *parameters):
-    """Returns the first row returned for the given query."""
-    rows = self.query(query, *parameters)
-    if not rows:
-      return None
-    elif len(rows) > 1:
-      raise Exception("Multiple rows returned from sqlite.get() query")
-    else:
-      return rows[0]
+  def query(self, query, *parameters):
+    """Returns a row list for the given query and parameters."""
+    cursor = self._cursor()
+    try:
+      self._execute(cursor, query, parameters)
+      column_names = [d[0] for d in cursor.description]
+      try:
+        return [Row(itertools.izip(column_names, row)) for row in cursor]
+      except AttributeError:
+        return [Row(zip(column_names, row)) for row in cursor]
+    finally:
+        pass
       
 class Row(dict):
   """A dict that allows for object-like property access syntax."""
