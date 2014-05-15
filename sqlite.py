@@ -74,10 +74,12 @@ class Connection(object):
     try:
       self._execute(cursor, query, parameters)
       column_names = [d[0] for d in cursor.description]
-      return [Row(itertools.izip(column_names, row)) for row in cursor]
+      try:
+        return [Row(itertools.izip(column_names, row)) for row in cursor]
+      except AttributeError:
+        return [Row(zip(column_names, row)) for row in cursor]
     finally:
-      # cursor.close()
-      pass
+        pass
       
   def get(self, query, *parameters):
     """Returns the first row returned for the given query."""
